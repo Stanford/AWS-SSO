@@ -122,6 +122,19 @@ print_info() {
 EOF
 }
 
+# Valid managed policy name
+validate_policy() {
+  policyArn=$(aws --profile $profile iam list-policies | jq --raw-output --arg p "$permission" '.Policies[] | select(.PolicyName == $p).Arn')
+  if [ -z "$policyArn" ];
+  then
+    aws --profile $profile iam list-policies | jq --arg p "$permission" --raw-output '.Policies[].PolicyName' | sort 
+    echo "Valid policies are shown as above."
+    exit 1
+  else
+    roleName=${permission}-generatedby-${script}
+  fi
+}
+
 # Docs
 help(){
   echo "stanford-sso -a <action> -c <config> [-n <name>] -p <permissino> [-d]"
@@ -201,16 +214,6 @@ if [ -z "$accountId" ]; then
   exit 1
 fi
 
-# Valid managed policy name
-policyArn=$(aws --profile $profile iam list-policies | jq --raw-output --arg p "$permission" '.Policies[] | select(.PolicyName == $p).Arn')
-if [ -z "$policyArn" ];
-then
-  aws --profile $profile iam list-policies | jq --arg p "$permission" --raw-output '.Policies[].PolicyName' | sort 
-  echo "Valid policies are shown as above."
-  exit 1
-else
-  roleName=${permission}-generatedby-${script}
-fi
 
 # Get saml provider arn
 echo "$action $name"
@@ -225,8 +228,7 @@ case $action in
      echo "SAML provider $name is already setup."
      exit 0
     else
-      create_saml_provider
-      create_role
+      validate_policy && create_saml_provider && create_role
     fi
     ;;
   'show')
@@ -244,8 +246,7 @@ case $action in
       echo "SAML provider $name doesn't exist."
       exit 1
     else
-      delete_saml_provider
-      delete_role
+      validate_policy && delete_saml_provider && delete_role
     fi
     ;; 
 esac
