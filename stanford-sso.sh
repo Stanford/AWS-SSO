@@ -12,14 +12,8 @@ init() {
   # Script actions
   actionsRegexp='+(create|delete|show)'
   
-  # Dryrun flag
+  # Dryrun flag. Default not run-run.
   dryrun=0
-  
-  # Timestamp
-  date=$(date +%Y%m%d)
-
-  # Interactive flag
-  interactive=1  
 
   # Metadata URL
   metadataUrl='https://idp.stanford.edu/metadata.xml'
@@ -100,7 +94,7 @@ EOF
   [ $dryrun -eq 0 ] && $cmd1 && $cmd2 || echo $cmd1 && echo $cmd2 
 }
   
-# Delete role - only delete role created today with this script. 
+# Delete role - only delete role created with this script. 
 delete_role() {
   echo "Deleting role $roleName"
   cmd1="aws --profile $profile iam detach-role-policy --role-name $roleName --policy-arn=$policyArn"
@@ -171,7 +165,7 @@ do
       ;;
     u)
       metadataUrl=$OPTARG
-      if [ "$metadata" !~ "https" ]; 
+      if ! [[ "$metadataUrl" =~ "https" ]]; 
       then
         echo "metadata url should contain https."
         echo "e.g. https://idp.stanford.edu/metadata.xml"
@@ -257,5 +251,9 @@ case $action in
 esac
 
 [ $dryrun -eq 1 ] && echo "Dryrun mode. Nothing is changed." || print_info 
+
+# Cleanup
+rm -rf /tmp/trust-policy.json
+rm -rf /tmp/samlMetadata.xml
 
 exit 0
