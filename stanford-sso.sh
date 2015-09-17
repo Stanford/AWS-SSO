@@ -34,7 +34,7 @@ create_saml_provider() {
   [ $dryrun -eq 0 ] && $cmd || echo $cmd 
 
   # If no account alias, create one
-  accountAlias=$(aws --profile itlab  iam list-account-aliases | jq --raw-output '.AccountAliases[]')
+  accountAlias=$(aws --profile $profile iam list-account-aliases | jq --raw-output '.AccountAliases[]')
   if [ -z "$accountAlias" ]; 
   then
     echo "Creating account alias ${script}-${profile}"
@@ -55,7 +55,7 @@ delete_saml_provider() {
   [ $dryrun -eq 0 ] && $cmd || echo $cmd 
  
   # Also remove alias we created
-  accountAlias=$(aws --profile itlab  iam list-account-aliases | jq --raw-output '.AccountAliases[]')
+  accountAlias=$(aws --profile $profile  iam list-account-aliases | jq --raw-output '.AccountAliases[]')
   if [ "$accountAlias" = "${script}-${profile}" ];
   then
     cmd="aws --profile $profile iam delete-account-alias --account-alias ${script}-${profile}"
