@@ -137,7 +137,7 @@ validate_policy() {
 
 # Docs
 help(){
-  echo "stanford-sso -a <action> -c <config> [-n <name>] -p <permissino> [-d]"
+  echo "stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <workgroupname> [-u <metadata url>] [-d] [-h]"
   echo ""
   echo " -a <create|show|delete>: action. create, show or delete SSO setup by this tool."
   echo " -c <aws config>: authenticate using profile defined by configuration."
@@ -213,7 +213,6 @@ if [ -z "$accountId" ]; then
   echo "Cannot find AWS account number."
   exit 1
 fi
-
 
 # Get saml provider arn
 echo "$action $name"
