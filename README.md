@@ -29,7 +29,7 @@ The following instructions apply to MacOS. For other platforms, follow the tool 
     ```
     
     ```
-    $ awscli configure --profile <aws user>
+    $ aws configure --profile <aws user>
     ```
  You will be prompted for AWS KEY and AWS SECRET for the aws user. The profile name will be used for AWS authentication/authorizatio to make AWS CLI calls. 
 
@@ -51,7 +51,7 @@ The following instructions apply to MacOS. For other platforms, follow the tool 
  Dry-run:
  
     ```
-    $ ./stanford-sso.sh -a create -c <aws profile> -n stanford-idp -p AdministratorAccess -w myworkgroup -d
+    $ ./stanford-sso.sh -d -a create -c <aws profile> -n stanford-idp -p AdministratorAccess -w myworkgroup 
     ```
 
  The above command will do a dry-run to show what will be created. __stanford-idp__ is a descriptive name to identify the idp provider you use. You can pass in the medtadata url for the idp provider on the command line (see help). The default metadata is 'https://idp.stanford.edu/metadata.xml'
