@@ -11,7 +11,7 @@ init() {
 
   # Script actions
   actionsRegexp='+(create|delete|show)'
-  
+
   # Dryrun flag. Default not run-run.
   dryrun=0
 
@@ -31,15 +31,28 @@ create_saml_provider() {
 
   echo "Creating saml provider $name."
   cmd="aws --profile $profile iam create-saml-provider --name=$name --output=text --saml-metadata-document file:///tmp/samlMetadata.xml"
-  [ $dryrun -eq 0 ] && $cmd || echo $cmd 
+  [ $dryrun -eq 0 ] && $cmd || echo $cmd
 
-  # If no account alias, create one
-  accountAlias=$(aws --profile $profile iam list-account-aliases | jq --raw-output '.AccountAliases[]')
-  if [ -z "$accountAlias" ]; 
+  # If no account alias and not passed as a parameter
+  if [ -z "$accountAlias" ];
   then
-    echo "Creating account alias ${script}-${profile}"
-    cmd="aws --profile $profile iam create-account-alias --account-alias ${script}-${profile}"
-    [ $dryrun -eq 0 ] && $cmd || echo $cmd 
+    accountAlias=$(aws --profile $profile iam list-account-aliases | jq --raw-output '.AccountAliases[]')
+    userProvidedLabel=0
+  else
+    userProvidedLabel=1
+  fi
+  if [ -z "$accountAlias" ] || [ $userProvidedLabel -eq 1 ];
+  then
+    if [ $userProvidedLabel -eq 1 ];
+    then
+      echo "Creating account alias ${accountAlias}"
+      cmd="aws --profile $profile iam create-account-alias --account-alias ${accountAlias}"
+      [ $dryrun -eq 0 ] && $cmd || echo $cmd
+    else
+      echo "Creating account alias ${script}-${profile}"
+      cmd="aws --profile $profile iam create-account-alias --account-alias ${script}-${profile}"
+      [ $dryrun -eq 0 ] && $cmd || echo $cmd
+    fi
   fi
 }
 
@@ -52,14 +65,14 @@ show_saml_provider() {
 delete_saml_provider() {
   echo "Deleting saml provider $name."
   cmd="aws --profile $profile iam delete-saml-provider --saml-provider-arn=$samlProviderArn"
-  [ $dryrun -eq 0 ] && $cmd || echo $cmd 
- 
+  [ $dryrun -eq 0 ] && $cmd || echo $cmd
+
   # Also remove alias we created
   accountAlias=$(aws --profile $profile  iam list-account-aliases | jq --raw-output '.AccountAliases[]')
   if [ "$accountAlias" = "${script}-${profile}" ];
   then
     cmd="aws --profile $profile iam delete-account-alias --account-alias ${script}-${profile}"
-    [ $dryrun -eq 0 ] && $cmd || echo $cmd 
+    [ $dryrun -eq 0 ] && $cmd || echo $cmd
   fi
 }
 
@@ -89,12 +102,12 @@ EOF
   # Create role and assume idp trust policy
   echo "Creating role $roleName"
   cmd1="aws --profile $profile iam create-role --role-name $roleName --assume-role-policy-document file:///tmp/trust-policy.json"
-  # Grant access 
+  # Grant access
   cmd2="aws --profile $profile iam attach-role-policy --role-name $roleName --policy-arn $policyArn"
-  [ $dryrun -eq 0 ] && $cmd1 && $cmd2 || echo $cmd1 && echo $cmd2 
+  [ $dryrun -eq 0 ] && $cmd1 && $cmd2 || echo $cmd1 && echo $cmd2
 }
-  
-# Delete role - only delete role created with this script. 
+
+# Delete role - only delete role created with this script.
 delete_role() {
   echo "Deleting role $roleName"
   cmd1="aws --profile $profile iam detach-role-policy --role-name $roleName --policy-arn=$policyArn"
@@ -127,24 +140,30 @@ validate_policy() {
   policyArn=$(aws --profile $profile iam list-policies | jq --raw-output --arg p "$permission" '.Policies[] | select(.PolicyName == $p).Arn')
   if [ -z "$policyArn" ];
   then
-    aws --profile $profile iam list-policies | jq --arg p "$permission" --raw-output '.Policies[].PolicyName' | sort 
+    aws --profile $profile iam list-policies | jq --arg p "$permission" --raw-output '.Policies[].PolicyName' | sort
     echo "Valid policies are shown as above."
     exit 1
   else
-    roleName=${permission}-generatedby-${script}
+    if [ -z "$roleName" ];
+    then
+      roleName=${permission}-generatedby-${script}
+    fi
   fi
 }
 
 # Docs
 help(){
-  echo "stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <workgroupname> [-u <metadata url>] [-d] [-h]"
+  echo "stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <workgroupname> [-u <metadata url>] [-d] [-h] [-l <account-label>] [-r <role-name>]"
   echo ""
   echo " -a <create|show|delete>: action. create, show or delete SSO setup by this tool."
   echo " -c <aws config>: authenticate using profile defined by configuration."
   echo " -n <provider-name>: the name of the idp provider, for example 'stanford-idp'."
   echo " -p <ReadOnlyAccess|AdministratorAccess|list-policies>: ReadOnlyAccess, AdministratorAccess, or list other valid AWS managed polices."
   echo " -u <url-for-metadata>: optional. metadata url for the idp provider. Default 'https://idp.stanford.edu/metadata.xml'."
-  echo " -w <workgroupname>: Stanford workgroup name to link into this saml provider setup. e.g. itlab:anchorage-admin" 
+  echo " -w <workgroupname>: Stanford workgroup name to link into this saml provider setup. e.g. itlab:anchorage-admin"
+  echo " -l <account-label>: Account label (alias) This will be the name displayed to users when logging in e.g. its-main-account"
+  echo " -r <role-name>: This defines the name of the role that will be created e.g. ops-readonly"
+  echo " -a <create|show|delete>: action. create, show or delete SSO setup by this tool."
   echo " -d     : dryrun. print out the commands"
   echo " -h     : Help"
 }
@@ -153,14 +172,13 @@ help(){
 
 # Set default values
 init
-
-while getopts "a:c:p:n:u:w:hd" OPTION
+while getopts "a:c:p:n:u:w:hdl:r:" OPTION
 do
   case $OPTION in
     a)
       action=$OPTARG
       case $action in
-        $actionsRegexp) 
+        $actionsRegexp)
            ;;
         *)
           echo "Unsupported action $action."
@@ -178,7 +196,7 @@ do
       ;;
     u)
       metadataUrl=$OPTARG
-      if ! [[ "$metadataUrl" =~ "https" ]]; 
+      if ! [[ "$metadataUrl" =~ "https" ]];
       then
         echo "metadata url should contain https."
         echo "e.g. https://idp.stanford.edu/metadata.xml"
@@ -187,6 +205,12 @@ do
       ;;
     w)
       workgroup=$OPTARG
+      ;;
+    l)
+      accountAlias=$OPTARG
+      ;;
+    r)
+      roleName=$OPTARG
       ;;
     d)
       dryrun=1
@@ -218,7 +242,7 @@ fi
 echo "$action $name"
 samlProviderArn=$(aws --profile $profile iam list-saml-providers | jq --raw-output ".SAMLProviderList[] | select(.Arn == \"arn:aws:iam::$accountId:saml-provider/$name\") | .Arn")
 
-# Call functions based on action 
+# Call functions based on action
 case $action in
   'create')
     if  [ "$samlProviderArn" == "arn:aws:iam::$accountId:saml-provider/$name" ];
@@ -238,7 +262,7 @@ case $action in
     else
       show_saml_provider
     fi
-    ;; 
+    ;;
   'delete')
     if  [ "$samlProviderArn" != "arn:aws:iam::$accountId:saml-provider/$name" ];
     then
@@ -247,10 +271,10 @@ case $action in
     else
       validate_policy && delete_saml_provider && delete_role
     fi
-    ;; 
+    ;;
 esac
 
-[ $dryrun -eq 1 ] && echo "Dryrun mode. Nothing is changed." || print_info 
+[ $dryrun -eq 1 ] && echo "Dryrun mode. Nothing is changed." || print_info
 
 # Cleanup
 rm -rf /tmp/trust-policy.json
