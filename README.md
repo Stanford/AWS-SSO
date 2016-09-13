@@ -84,16 +84,46 @@ Dryrun mode. Nothing is changed.
  Real run:
  
      ```
-     $ ./stanford-sso.sh -a create -c <aws profile> -n stanford-idp -p AdministratorAccess -w myworkgroup
-     All done! Next step. Submit the following request to https://helpsu.stanford.edu/helpsu/3.0/auth/helpsu-form?pcat=shibboleth to create idp server setup.
+     ./stanford-sso.sh  -a create -c idg-dev -u https://idp-uat.stanford.edu/metadata.xml -l aws-idg-dev -n stanford-idp-uat -p AdministratorAccess -w itservices:idg-aws -r stanford-idp-uat
+Getting AWS account number ...
+create stanford-idp-uat
+Creating saml provider stanford-idp-uat.
+arn:aws:iam::123456789012:saml-provider/stanford-idp-uat
+Creating account alias aws-idg-dev
+Creating role stanford-idp-uat
+{
+    "Role": {
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "sts:AssumeRoleWithSAML",
+                    "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:saml-provider/stanford-idp-uat"
+                    },
+                    "Effect": "Allow",
+                    "Condition": {
+                        "StringEquals": {
+                            "SAML:aud": "https://signin.aws.amazon.com/saml"
+                        }
+                    },
+                    "Sid": ""
+                }
+            ]
+        },
+        "RoleId": "*********************",
+        "CreateDate": "2016-09-13T17:24:23.675Z",
+        "RoleName": "stanford-idp-uat",
+        "Path": "/",
+        "Arn": "arn:aws:iam::123456789012:role/stanford-idp-uat"
+    }
+}
+aws --profile idg-dev iam attach-role-policy --role-name stanford-idp-uat --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
-     When idp server setup is complete, you can login to AWS console SSO through this url:
-     https://idp.stanford.edu/idp/profile/SAML2/Unsolicited/SSO?providerId=urn:amazon:webservices
+All done! Next step. Submit the following request to https://helpsu.stanford.edu/helpsu/3.0/auth/helpsu-form?pcat=shibboleth to create idp server setup.
 
-           Account number: 123456789012
-           Provider name: arn:aws:iam::123456789012:saml-provider/stanford-idp
-           Role-name: AdministratorAccess-generatedby-stanford-sso
-           Workgroup: myworkgroup
+When idp server setup is complete, you can login to AWS console SSO through this url:
+https://idp.stanford.edu/idp/profile/SAML2/Unsolicited/SSO?providerId=urn:amazon:webservices
     ```
 
 1. Delete SAML provider
