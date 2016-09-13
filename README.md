@@ -43,7 +43,21 @@ The following instructions apply to MacOS. For other platforms, follow the tool 
 1. Run help
     
     ```
-    $ ./stanford-sso.sh
+    $ ./stanford-sso.sh -h
+stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <workgroupname> [-u <metadata url>] [-d] [-h] [-l <account-label>] [-r <role-name>]
+
+ -a <create|show|delete>: action. create, show or delete SSO setup by this tool.
+ -c <aws config>: authenticate using profile defined by configuration.
+ -n <provider-name>: the name of the idp provider, for example 'stanford-idp'.
+ -p <ReadOnlyAccess|AdministratorAccess|list-policies>: ReadOnlyAccess, AdministratorAccess, or list other valid AWS managed polices.
+ -u <url-for-metadata>: optional. metadata url for the idp provider. Default 'https://idp.stanford.edu/metadata.xml'.
+ -w <workgroupname>: Stanford workgroup name to link into this saml provider setup. e.g. itlab:anchorage-admin
+ -l <account-label>: Account label (alias) This will be the name displayed to users when logging in e.g. its-main-account
+ -r <role-name>: This defines the name of the role that will be created e.g. ops-readonly
+ -a <create|show|delete>: action. create, show or delete SSO setup by this tool.
+ -d     : dryrun. print out the commands
+ -h     : Help
+
     ```
 
 1. Create SAML provider 
@@ -51,10 +65,20 @@ The following instructions apply to MacOS. For other platforms, follow the tool 
  Dry-run:
  
     ```
-    $ ./stanford-sso.sh -d -a create -c <aws profile> -n stanford-idp -p AdministratorAccess -w myworkgroup 
+    $ ./stanford-sso.sh -d -a create -c idg-dev -u https://idp-uat.stanford.edu/metadata.xml -l aws-idg-dev -n stanford-idp-uat -p AdministratorAccess -w itservices:idg-aws -r stanford-idp-uat
+Getting AWS account number ...
+create stanford-idp-uat
+Creating saml provider stanford-idp-uat.
+aws --profile idg-dev iam create-saml-provider --name=stanford-idp-uat --output=text --saml-metadata-document file:///tmp/samlMetadata.xml
+Creating account alias aws-idg-dev
+aws --profile idg-dev iam create-account-alias --account-alias aws-idg-dev
+Creating role stanford-idp-uat
+aws --profile idg-dev iam create-role --role-name stanford-idp-uat --assume-role-policy-document file:///tmp/trust-policy.json
+aws --profile idg-dev iam attach-role-policy --role-name stanford-idp-uat --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
+Dryrun mode. Nothing is changed.
     ```
 
- The above command will do a dry-run to show what will be created. __stanford-idp__ is a descriptive name to identify the idp provider you use. You can pass in the medtadata url for the idp provider on the command line (see help). The default metadata is 'https://idp.stanford.edu/metadata.xml'
+ The above command will do a dry-run to show what will be created. __stanford-idp-uat__ is a descriptive name to identify the idp provider you use. You can pass in the medtadata url for the idp provider on the command line (see help). The default metadata is 'https://idp.stanford.edu/metadata.xml'
  
  
  Real run:
