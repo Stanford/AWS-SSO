@@ -27,6 +27,8 @@ create_saml_provider() {
     echo "$samlMetadata"
     echo "Invalid metadata"
     exit 1
+  else
+    idpId=${metadataUrl%/metadata.xml}
   fi
 
   echo "Creating saml provider $name."
@@ -122,7 +124,7 @@ print_info() {
     echo "All done! Next step. Submit the following request to https://helpsu.stanford.edu/helpsu/3.0/auth/helpsu-form?pcat=shibboleth to create idp server setup."
     echo ""
     echo "When idp server setup is complete, you can login to AWS console SSO through this url:"
-    echo "https://idp.stanford.edu/idp/profile/SAML2/Unsolicited/SSO?providerId=urn:amazon:webservices"
+    echo "$idpId/idp/profile/SAML2/Unsolicited/SSO?providerId=urn:amazon:webservices"
     echo ""
   elif [ $action = 'delete' ]; then
     echo "All done! Next step. Submit the following request to https://helpsu.stanford.edu/helpsu/3.0/auth/helpsu-form?pcat=shibboleth to remove idp server setup."
