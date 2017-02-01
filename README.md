@@ -168,7 +168,7 @@ Amazon currently only works with IdP-initiated SSO - our Unsolicited SSO Endpoin
 are not listed in our IdP metadata, but the handlers and decoders appear to be 
 enabled.  AWS only uses the metadata for the certificate / entity ID.
 
-You need to submit the request to [HelpSU](https://helpsu.stanford.edu/helpsu/3.0/auth/helpsu-form?pcat=shibboleth) to complete the setup with the following information.
+You need to submit the request to [HelpSU](https://stanford.service-now.com/it_services?id=sc_cat_item&sys_id=21cfc2684fdf6e0054c23f828110c77e) to complete the setup with the following information.
 
 * The [AWS metadata](https://signin.aws.amazon.com/static/saml-metadata.xml)
 
