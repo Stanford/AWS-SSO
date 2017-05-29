@@ -83,7 +83,7 @@ Dryrun mode. Nothing is changed.
  
  Real run:
  
-     ```
+ ```
      ./stanford-sso.sh  -a create -c idg-dev -u https://idp-uat.stanford.edu/metadata.xml -l aws-idg-dev -n stanford-idp-uat -p AdministratorAccess -w itservices:idg-aws -r stanford-idp-uat
 Getting AWS account number ...
 create stanford-idp-uat
@@ -124,7 +124,7 @@ All done! Next step. Submit the following request to https://helpsu.stanford.edu
 
 When idp server setup is complete, you can login to AWS console SSO through this url:
 https://idp.stanford.edu/idp/profile/SAML2/Unsolicited/SSO?providerId=urn:amazon:webservices
-    ```
+```
 
 1. Delete SAML provider
 
