@@ -42,7 +42,7 @@ The following instructions apply to MacOS. For other platforms, follow the tool 
     
 1. Run help
     
-    ```
+```
     $ ./stanford-sso.sh -h
 stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <workgroupname> [-u <metadata url>] [-d] [-h] [-l <account-label>] [-r <role-name>]
 
@@ -58,7 +58,7 @@ stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <work
  -d     : dryrun. print out the commands
  -h     : Help
 
-    ```
+ ```
 
 1. Create SAML provider 
  
