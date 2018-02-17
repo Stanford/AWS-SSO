@@ -8,41 +8,34 @@ By using AWS SAML integration, you don't need to create AWS accounts for users w
 
 The following instructions apply to MacOS. For other platforms, follow the tool links and instructions on tool sites.
 
-1. Install [Jq](http://stedolan.github.io/jq/)
+- Install [Jq](http://stedolan.github.io/jq/)
 
     ```
-    $ brew install jq
+    $ brew install jq awscli
     ```
     
-1. Install and configure [AWS CLI](https://github.com/aws/aws-cli)
+- Install and configure [AWS CLI](https://github.com/aws/aws-cli)
 
   If you have AWSCLI installed and configured, you can skip this step.
 
     ```
     $ brew install awscli
     ```
-    or
-
-    ```
-    $ sudo easy_install pip
-    $ sudo pip install --upgrade awscli
-    ```
-    
     ```
     $ aws configure --profile <aws user>
     ```
  You will be prompted for AWS KEY and AWS SECRET for the aws user. The profile name will be used for AWS authentication/authorizatio to make AWS CLI calls. 
 
-1. Clone the repo
+- Clone the repo
 
     ```
     $ git clone https://github.com/Stanford/AWS-SSO.git
     $ cd AWS-SSO
     ```
     
-1. Run help
+- Run help
     
-```
+```console
     $ ./stanford-sso.sh -h
 stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <workgroupname> [-u <metadata url>] [-d] [-h] [-l <account-label>] [-r <role-name>]
 
@@ -60,11 +53,11 @@ stanford-sso -a <action> -c <config> -n <provider name> -p <permission> -w <work
 
  ```
 
-1. Create SAML provider 
+- Create SAML provider 
  
  Dry-run:
  
-    ```
+ ```console
     $ ./stanford-sso.sh -d -a create -c idg-dev -u https://idp-uat.stanford.edu/metadata.xml -l aws-idg-dev -n stanford-idp-uat -p AdministratorAccess -w itservices:idg-aws -r stanford-idp-uat
 Getting AWS account number ...
 create stanford-idp-uat
@@ -76,15 +69,15 @@ Creating role stanford-idp-uat
 aws --profile idg-dev iam create-role --role-name stanford-idp-uat --assume-role-policy-document file:///tmp/trust-policy.json
 aws --profile idg-dev iam attach-role-policy --role-name stanford-idp-uat --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 Dryrun mode. Nothing is changed.
-    ```
+```
 
  The above command will do a dry-run to show what will be created. __stanford-idp-uat__ is a descriptive name to identify the idp provider you use. You can pass in the medtadata url for the idp provider on the command line (see help). The default metadata is 'https://idp.stanford.edu/metadata.xml'
  
  
  Real run:
  
- ```
-     ./stanford-sso.sh  -a create -c idg-dev -u https://idp-uat.stanford.edu/metadata.xml -l aws-idg-dev -n stanford-idp-uat -p AdministratorAccess -w itservices:idg-aws -r stanford-idp-uat
+ ```console
+     $ ./stanford-sso.sh  -a create -c idg-dev -u https://idp-uat.stanford.edu/metadata.xml -l aws-idg-dev -n stanford-idp-uat -p AdministratorAccess -w itservices:idg-aws -r stanford-idp-uat
 Getting AWS account number ...
 create stanford-idp-uat
 Creating saml provider stanford-idp-uat.
@@ -126,11 +119,11 @@ When idp server setup is complete, you can login to AWS console SSO through this
 https://idp.stanford.edu/idp/profile/SAML2/Unsolicited/SSO?providerId=urn:amazon:webservices
 ```
 
-1. Delete SAML provider
+- Delete SAML provider
 
-    ```
-    $ ./stanford-sso.sh -a delete -c <aws profile> -n stanford-idp -p AdministratorAccess -w myworkgroup 
-    ```
+```
+$ ./stanford-sso.sh -a delete -c <aws profile> -n stanford-idp -p AdministratorAccess -w myworkgroup 
+```
     
 ## Manual steps
 
